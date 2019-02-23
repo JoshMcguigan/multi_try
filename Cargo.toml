@@ -9,6 +9,3 @@ readme = "README.md"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
-
-[features]
-nightly = []

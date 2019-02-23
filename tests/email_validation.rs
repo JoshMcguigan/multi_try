@@ -1,3 +1,5 @@
+use multi_try::MultiTry;
+
 #[derive(Debug, PartialEq)]
 struct Email<'a> {
     to: &'a str,
@@ -48,20 +50,15 @@ fn validate_body(body: &str) -> Result<&str, EmailValidationErr> {
 }
 
 fn validate_email(email: Email) -> Result<ValidatedEmail, Vec<EmailValidationErr>> {
-    let (to, from, subject, body) =
-        multi_try::and(
-            validate_address(email.to)
-                .map_err(|_| EmailValidationErr::InvalidRecipientEmailAddress),
-            validate_address(email.from)
-                .map_err(|_| EmailValidationErr::InvalidSenderEmailAddress)
-        )
-        .and(
-            validate_subject(email.subject)
-        )
-        .and(
-            validate_body(email.body)
-        )
-        .into_result()?;
+    let (to, from, subject, body) = validate_address(email.to).map_err(|_| {
+        EmailValidationErr::InvalidRecipientEmailAddress
+    }).and_try(validate_address(email.from).map_err(|_| {
+        EmailValidationErr::InvalidSenderEmailAddress
+    })).and_try(
+        validate_subject(email.subject)
+    ).and_try(
+        validate_body(email.body)
+    )?;
 
     Ok(ValidatedEmail { to, from, subject, body })
 }
