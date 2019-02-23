@@ -1,126 +1,148 @@
-#![cfg_attr(feature = "nightly", feature(try_trait))]
+//! This crate allows you to combine multiple `Result` types and return either a
+//! tuple containing all of their results, or a `Vec` of any errors which occurred.
+//! It is useful when you want to provide an error message for all errors rather
+//! than simply returning the first error.
+//!
+//! Generics are used to support `Result<T, E>` for any types of `T` and `E`. The
+//! `Ok` types of the combined results are NOT required to be the same, but all of
+//! the `Err` types must be the same.
+//!
+//! See the documentation for the [`MultiTry` trait] for more information and an example.
+//!
+//! [`MultiTry` trait]: trait.MultiTry.html
 
-pub struct Combined2<A, B, ERR> (Result<(A, B), Vec<ERR>>);
-pub struct Combined3<A, B, C, ERR> (Result<(A, B, C), Vec<ERR>>);
-pub struct Combined4<A, B, C, D, ERR> (Result<(A, B, C, D), Vec<ERR>>);
+/// Exposes the `and_try` method for combining multiple `Result` types.
+///
+/// This is an extension trait designed to add functionality to the `Result` type. That
+/// means that to use this trait's methods, you must have it in scope:
+///
+/// ```no_run
+/// use multi_try::MultiTry;
+/// ```
+///
+/// The `Ok` variant of each combined `Result` can have any type. Each value will be combined into
+/// a tuple. We support up to 27 items, though we never expect anyone to need anything close to
+/// that. The `Err` variant of each `Result` must have the same type. Each error that occurs will
+/// be combined into a single `Vec`.
+///
+/// The idea is that you can try many different operations, collect any errors that occurred, and
+/// then only proceed if every operation was a success. The example below demonstrates that:
+///
+/// ```no_run
+/// use multi_try::MultiTry;
+///
+/// struct A {
+///     b: Result<i32, MyErr>,
+///     c: Result<i64, MyErr>,
+///     d: Result<f32, MyErr>,
+/// }
+///
+/// struct ValidatedA {
+///     b: i32,
+///     c: i64,
+///     d: f32,
+/// }
+///
+/// enum MyErr {
+///     FailedB,
+///     FailedC,
+///     FailedD,
+/// }
+///
+/// fn validate(a: A) -> Result<ValidatedA, Vec<MyErr>> {
+///     // Only continue beyond this point if all the `Result` values were `Ok`
+///     let (b, c, d) = a.b.and_try(a.c).and_try(a.d)?;
+///
+///     Ok(ValidatedA { b, c, d })
+/// }
+/// ```
+pub trait MultiTry<RT, ERR> {
+    /// The output of the `and_try` operation
+    type Output;
 
-pub fn and<A, B, ERR>(a: Result<A, ERR>, b: Result<B, ERR>) -> Combined2<A, B, ERR> {
-    match (a, b) {
-        (Ok(a), Ok(b)) => Combined2(Ok((a, b))),
-        (Ok(_a), Err(b)) => Combined2(Err(vec![b])),
-        (Err(a), Ok(_b)) => Combined2(Err(vec![a])),
-        (Err(a), Err(b)) => Combined2(Err(vec![a, b])),
-    }
+    /// Returns the current `Result` combined with the given `Result`. If both are `Ok`, this will
+    /// return a new tuple that combines the results. If either have failed, this will return a
+    /// vector containing each error that occurred.
+    ///
+    /// ```
+    /// use multi_try::MultiTry;
+    /// # // These functions are used to get around type inference issues
+    /// # fn Ok<T>(value: T) -> Result<T, &'static str> { Result::Ok(value) }
+    /// # fn Err<E>(err: E) -> Result<i32, E> { Result::Err(err) }
+    ///
+    /// # fn main() -> Result<(), Vec<&'static str>> {
+    /// // Combines two results so we get a 2-tuple
+    /// assert_eq!(Ok(1).and_try(Ok("abc"))?, (1, "abc"));
+    /// // Combines two results with another result so we get a 3-tuple
+    /// assert_eq!(Ok(1).and_try(Ok("abc")).and_try(Ok(37.4))?, (1, "abc", 37.4));
+    /// // Even if one succeeds, we only return Ok() if they both do
+    /// assert_eq!(Err("bad!").and_try(Ok(32)).unwrap_err(), vec!["bad!"]);
+    /// assert_eq!(Ok(1).and_try(Err("very bad!")).unwrap_err(), vec!["very bad!"]);
+    /// // If both fail, we return both errors
+    /// assert_eq!(Err("bad!").and_try(Err("very bad!")).unwrap_err(), vec!["bad!", "very bad!"]);
+    /// # Result::Ok(()) }
+    /// ```
+    fn and_try(self, other: Result<RT, ERR>) -> Self::Output;
 }
 
-impl<A, B, ERR> Combined2<A, B, ERR> {
-    pub fn and<C>(self, other: Result<C, ERR>) -> Combined3<A, B, C, ERR> {
-        match (self.0, other) {
-            (Ok(vals), Ok(new_val)) => {
-                Combined3(Ok((vals.0, vals.1, new_val)))
-            },
-            (Err(errors), Ok(_)) => {
-                Combined3(Err(errors))
-            },
-            (Ok(_vals), Err(e)) => {
-                Combined3(Err(vec![e]))
-            },
-            (Err(mut errors), Err(e)) => {
-                errors.push(e);
-                Combined3(Err(errors))
-            },
-        }
-    }
+// Allows you to combine Result<T, ERR> with Result<RT, ERR> to get Result<(T, RT), Vec<ERR>>
+impl<T, RT, ERR> MultiTry<RT, ERR> for Result<T, ERR> {
+    type Output = Result<(T, RT), Vec<ERR>>;
 
-    pub fn into_result(self) -> Result<(A, B), Vec<ERR>> {
-        self.0
-    }
-}
-
-impl<A, B, C, ERR> Combined3<A, B, C, ERR> {
-    pub fn and<D>(self, other: Result<D, ERR>) -> Combined4<A, B, C, D, ERR> {
-        match (self.0, other) {
-            (Ok(vals), Ok(new_val)) => {
-                Combined4(Ok((vals.0, vals.1, vals.2, new_val)))
-            },
-            (Err(errors), Ok(_)) => {
-                Combined4(Err(errors))
-            },
-            (Ok(_vals), Err(e)) => {
-                Combined4(Err(vec![e]))
-            },
-            (Err(mut errors), Err(e)) => {
-                errors.push(e);
-                Combined4(Err(errors))
-            },
-        }
-    }
-
-    pub fn into_result(self) -> Result<(A, B, C), Vec<ERR>> {
-        self.0
-    }
-}
-
-impl<A, B, C, D, ERR> Combined4<A, B, C, D, ERR> {
-    pub fn into_result(self) -> Result<(A, B, C, D), Vec<ERR>> {
-        self.0
-    }
-}
-
-#[cfg(feature = "nightly")]
-mod try_impl {
-    use super::{Combined2, Combined3, Combined4};
-    use std::ops::Try;
-
-    impl<A, B, ERR> Try for Combined2<A, B, ERR> {
-        type Ok = (A, B);
-        type Error = Vec<ERR>;
-
-        fn into_result(self) -> Result<Self::Ok, Self::Error> {
-            self.0
-        }
-
-        fn from_error(e: Self::Error) -> Self {
-            Combined2(Err(e))
-        }
-
-        fn from_ok(t: Self::Ok) -> Self {
-            Combined2(Ok(t))
-        }
-    }
-
-    impl<A, B, C, ERR> Try for Combined3<A, B, C, ERR> {
-        type Ok = (A, B, C);
-        type Error = Vec<ERR>;
-
-        fn into_result(self) -> Result<Self::Ok, Self::Error> {
-            self.0
-        }
-
-        fn from_error(e: Self::Error) -> Self {
-            Combined3(Err(e))
-        }
-
-        fn from_ok(t: Self::Ok) -> Self {
-            Combined3(Ok(t))
-        }
-    }
-
-    impl<A, B, C, D, ERR> Try for Combined4<A, B, C, D, ERR> {
-        type Ok = (A, B, C, D);
-        type Error = Vec<ERR>;
-
-        fn into_result(self) -> Result<Self::Ok, Self::Error> {
-            self.0
-        }
-
-        fn from_error(e: Self::Error) -> Self {
-            Combined4(Err(e))
-        }
-
-        fn from_ok(t: Self::Ok) -> Self {
-            Combined4(Ok(t))
+    fn and_try(self, other: Result<RT, ERR>) -> Self::Output {
+        match (self, other) {
+            (Ok(a), Ok(b)) => Ok((a, b)),
+            (Ok(_), Err(eb)) => Err(vec![eb]),
+            (Err(ea), Ok(_)) => Err(vec![ea]),
+            (Err(ea), Err(eb)) => Err(vec![ea, eb]),
         }
     }
 }
 
+macro_rules! impl_multi_try {
+    ($($typ:ident),+) => {
+        impl<RT, ERR, $($typ),+> MultiTry<RT, ERR> for Result<($($typ),+,), Vec<ERR>> {
+            type Output = Result<($($typ),*, RT), Vec<ERR>>;
+
+            fn and_try(self, other: Result<RT, ERR>) -> Self::Output {
+                #[allow(non_snake_case)] // reusing the type parameter identifiers as variables
+                match (self, other) {
+                    (Ok(($($typ),+,)), Ok(rt)) => Ok(($($typ),+, rt)),
+                    (Ok(_), Err(e)) => Err(vec![e]),
+                    (Err(errs), Ok(_)) => Err(errs),
+                    (Err(mut errs), Err(e)) => Err({
+                        errs.push(e);
+                        errs
+                    }),
+                }
+            }
+        }
+    };
+}
+
+impl_multi_try!(A);
+impl_multi_try!(A, B);
+impl_multi_try!(A, B, C);
+impl_multi_try!(A, B, C, D);
+impl_multi_try!(A, B, C, D, E);
+impl_multi_try!(A, B, C, D, E, F);
+impl_multi_try!(A, B, C, D, E, F, G);
+impl_multi_try!(A, B, C, D, E, F, G, H);
+impl_multi_try!(A, B, C, D, E, F, G, H, I);
+impl_multi_try!(A, B, C, D, E, F, G, H, I, J);
+impl_multi_try!(A, B, C, D, E, F, G, H, I, J, K);
+impl_multi_try!(A, B, C, D, E, F, G, H, I, J, K, L);
+impl_multi_try!(A, B, C, D, E, F, G, H, I, J, K, L, M);
+impl_multi_try!(A, B, C, D, E, F, G, H, I, J, K, L, M, N);
+impl_multi_try!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O);
+impl_multi_try!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P);
+impl_multi_try!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q);
+impl_multi_try!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R);
+impl_multi_try!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S);
+impl_multi_try!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T);
+impl_multi_try!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U);
+impl_multi_try!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V);
+impl_multi_try!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W);
+impl_multi_try!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X);
+impl_multi_try!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y);
+impl_multi_try!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z);

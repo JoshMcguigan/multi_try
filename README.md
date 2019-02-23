@@ -1,12 +1,24 @@
-# multi_try [![crates.io badge](https://img.shields.io/crates/v/multi_try.svg)](https://crates.io/crates/multi_try) [![Build Status](https://travis-ci.org/JoshMcguigan/multi_try.svg?branch=master)](https://travis-ci.org/JoshMcguigan/multi_try)
+# multi_try
+[![crates.io badge](https://img.shields.io/crates/v/multi_try.svg)](https://crates.io/crates/multi_try)
+[![Docs.rs](https://docs.rs/multi_try/badge.svg)](https://docs.rs/multi_try)
+[![Build Status](https://travis-ci.org/JoshMcguigan/multi_try.svg?branch=master)](https://travis-ci.org/JoshMcguigan/multi_try)
 
-This crate allows combining multiple `Result` types, and returning either a tuple containing all of their results, or a `Vec` of any errors which occurred. It is useful when you want to provide an error message for all errors rather than simply returning the first error.
+This crate allows you to combine multiple `Result` types and return either a
+tuple containing all of their results, or a `Vec` of any errors which occurred.
+It is useful when you want to provide an error message for all errors rather
+than simply returning the first error.
 
-Generics are used to support `Result<T, E>` for any types of `T` and `E`. The `ok` types of the combined results are NOT required to be the same, but all of the `error` types must be the same. 
+Generics are used to support `Result<T, E>` for any types of `T` and `E`. The
+`Ok` types of the combined results are NOT required to be the same, but all of
+the `Err` types must be the same.
+
+### [The Documentation](https://docs.rs/multi_try)
 
 ## Example
 
 ```rust
+use multi_try::MultiTry;
+
 struct A {
     b: Result<i32, MyErr>,
     c: Result<i64, MyErr>,
@@ -26,23 +38,13 @@ enum MyErr {
 }
 
 fn validate(a: A) -> Result<ValidatedA, Vec<MyErr>> {
-    let (b, c, d) =
-        multi_try::and(
-            a.b,
-            a.c
-        )
-        .and(a.d)
-        .into_result()?;
+    let (b, c, d) = a.b.and_try(a.c).and_try(a.d)?;
 
     Ok(ValidatedA { b, c, d })
 }
 ```
 
 Check the `tests` directory for additional examples.
-
-#### Enabling nightly features
-
-Enabling the `nightly` feature for `multi_try` allows removing the call to `into_result` before using the `?` operator. 
 
 ## License
 

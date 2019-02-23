@@ -1,3 +1,5 @@
+use multi_try::MultiTry;
+
 #[derive(Debug, PartialEq)]
 struct A {
     b: Result<i32, MyErr>,
@@ -19,27 +21,8 @@ enum MyErr {
     FailedD,
 }
 
-#[cfg(feature = "nightly")]
 fn validate(a: A) -> Result<ValidatedA, Vec<MyErr>> {
-    let (b, c, d) =
-        multi_try::and(
-            a.b,
-            a.c
-        )
-        .and(a.d)?;
-
-    Ok(ValidatedA { b, c, d })
-}
-
-#[cfg(not(feature = "nightly"))]
-fn validate(a: A) -> Result<ValidatedA, Vec<MyErr>> {
-    let (b, c, d) =
-        multi_try::and(
-            a.b,
-            a.c
-        )
-        .and(a.d)
-        .into_result()?;
+    let (b, c, d) = a.b.and_try(a.c).and_try(a.d)?;
 
     Ok(ValidatedA { b, c, d })
 }

@@ -1,3 +1,5 @@
+use multi_try::MultiTry;
+
 #[derive(Debug, PartialEq)]
 struct A {
     b: Option<i32>,
@@ -22,29 +24,11 @@ enum ValidationError {
     MissingE,
 }
 
-#[cfg(feature = "nightly")]
 fn validate(a: A) -> Result<ValidatedA, Vec<ValidationError>> {
-    let (b, c, d, e) =
-        multi_try::and(
-            a.b.ok_or(ValidationError::MissingB),
-            a.c.ok_or(ValidationError::MissingC)
-        )
-        .and(a.d.ok_or(ValidationError::MissingD))
-        .and(a.e.ok_or(ValidationError::MissingE))?;
-
-    Ok(ValidatedA { b, c, d, e })
-}
-
-#[cfg(not(feature = "nightly"))]
-fn validate(a: A) -> Result<ValidatedA, Vec<ValidationError>> {
-    let (b, c, d, e) =
-        multi_try::and(
-            a.b.ok_or(ValidationError::MissingB),
-            a.c.ok_or(ValidationError::MissingC)
-        )
-        .and(a.d.ok_or(ValidationError::MissingD))
-        .and(a.e.ok_or(ValidationError::MissingE))
-        .into_result()?;
+    let (b, c, d, e) = a.b.ok_or(ValidationError::MissingB)
+        .and_try(a.c.ok_or(ValidationError::MissingC))
+        .and_try(a.d.ok_or(ValidationError::MissingD))
+        .and_try(a.e.ok_or(ValidationError::MissingE))?;
 
     Ok(ValidatedA { b, c, d, e })
 }
