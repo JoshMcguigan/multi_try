@@ -3,5 +3,9 @@ name = "multi_try"
 version = "0.1.0"
 authors = ["Josh Mcguigan"]
 edition = "2018"
+description = "Safely combine results"
+repository = "https://github.com/JoshMcguigan/multi_try"
+readme = "README.md"
+license = "MIT OR Apache-2.0"
 
 [dependencies]
