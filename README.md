@@ -1,4 +1,4 @@
-# multi_try [![crates.io badge](https://img.shields.io/crates/v/multi_try.svg)](https://crates.io/crates/multi_try)
+# multi_try [![crates.io badge](https://img.shields.io/crates/v/multi_try.svg)](https://crates.io/crates/multi_try) [![Build Status](https://travis-ci.org/JoshMcguigan/multi_try.svg?branch=master)](https://travis-ci.org/JoshMcguigan/multi_try)
 
 This crate allows combining multiple `Result` types, and returning either a tuple containing all of their results, or a `Vec` of any errors which occurred. It is useful when you want to provide an error message for all errors rather than simply returning the first error.
 
