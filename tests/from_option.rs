@@ -22,6 +22,7 @@ enum ValidationError {
     MissingE,
 }
 
+#[cfg(feature = "nightly")]
 fn validate(a: A) -> Result<ValidatedA, Vec<ValidationError>> {
     let (b, c, d, e) =
         multi_try::and(
@@ -30,6 +31,20 @@ fn validate(a: A) -> Result<ValidatedA, Vec<ValidationError>> {
         )
         .and(a.d.ok_or(ValidationError::MissingD))
         .and(a.e.ok_or(ValidationError::MissingE))?;
+
+    Ok(ValidatedA { b, c, d, e })
+}
+
+#[cfg(not(feature = "nightly"))]
+fn validate(a: A) -> Result<ValidatedA, Vec<ValidationError>> {
+    let (b, c, d, e) =
+        multi_try::and(
+            a.b.ok_or(ValidationError::MissingB),
+            a.c.ok_or(ValidationError::MissingC)
+        )
+        .and(a.d.ok_or(ValidationError::MissingD))
+        .and(a.e.ok_or(ValidationError::MissingE))
+        .into_result()?;
 
     Ok(ValidatedA { b, c, d, e })
 }

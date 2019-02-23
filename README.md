@@ -31,15 +31,16 @@ fn validate(a: A) -> Result<ValidatedA, Vec<MyErr>> {
             a.b,
             a.c
         )
-        .and(a.d)?;
+        .and(a.d)
+        .into_result()?;
 
     Ok(ValidatedA { b, c, d })
 }
 ```
 
-#### Nightly Rust Required
+#### Enabling nightly features
 
-For now `multi_try` requires nightly Rust, due to usage of the `Try` trait.
+Enabling the `nightly` feature for `multi_try` allows removing the call to `into_result` before using the `?` operator. 
 
 ## License
 

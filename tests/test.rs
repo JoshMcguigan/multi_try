@@ -19,6 +19,7 @@ enum MyErr {
     FailedD,
 }
 
+#[cfg(feature = "nightly")]
 fn validate(a: A) -> Result<ValidatedA, Vec<MyErr>> {
     let (b, c, d) =
         multi_try::and(
@@ -26,6 +27,19 @@ fn validate(a: A) -> Result<ValidatedA, Vec<MyErr>> {
             a.c
         )
         .and(a.d)?;
+
+    Ok(ValidatedA { b, c, d })
+}
+
+#[cfg(not(feature = "nightly"))]
+fn validate(a: A) -> Result<ValidatedA, Vec<MyErr>> {
+    let (b, c, d) =
+        multi_try::and(
+            a.b,
+            a.c
+        )
+        .and(a.d)
+        .into_result()?;
 
     Ok(ValidatedA { b, c, d })
 }
