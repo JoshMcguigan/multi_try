@@ -17,50 +17,50 @@ impl<T, RT, ERR> MultiTry<RT, ERR> for Result<T, ERR> {
     }
 }
 
-impl<T, U, RT, ERR> MultiTry<RT, ERR> for Result<(T, U), Vec<ERR>> {
-    type Output = Result<(T, U, RT), Vec<ERR>>;
+macro_rules! impl_multi_try {
+    ($($typ:ident),+) => {
+        impl<RT, ERR, $($typ),+> MultiTry<RT, ERR> for Result<($($typ),+,), Vec<ERR>> {
+            type Output = Result<($($typ),*, RT), Vec<ERR>>;
 
-    fn and_try(self, other: Result<RT, ERR>) -> Self::Output {
-        match (self, other) {
-            (Ok((a, b)), Ok(c)) => Ok((a, b, c)),
-            (Ok(_), Err(ec)) => Err(vec![ec]),
-            (Err(errs), Ok(_)) => Err(errs),
-            (Err(mut errs), Err(ec)) => Err({
-                errs.push(ec);
-                errs
-            }),
+            fn and_try(self, other: Result<RT, ERR>) -> Self::Output {
+                #[allow(non_snake_case)] // reusing the type parameter identifiers as variables
+                match (self, other) {
+                    (Ok(($($typ),+,)), Ok(rt)) => Ok(($($typ),+, rt)),
+                    (Ok(_), Err(e)) => Err(vec![e]),
+                    (Err(errs), Ok(_)) => Err(errs),
+                    (Err(mut errs), Err(e)) => Err({
+                        errs.push(e);
+                        errs
+                    }),
+                }
+            }
         }
-    }
+    };
 }
 
-impl<T, U, V, RT, ERR> MultiTry<RT, ERR> for Result<(T, U, V), Vec<ERR>> {
-    type Output = Result<(T, U, V, RT), Vec<ERR>>;
-
-    fn and_try(self, other: Result<RT, ERR>) -> Self::Output {
-        match (self, other) {
-            (Ok((a, b, c)), Ok(d)) => Ok((a, b, c, d)),
-            (Ok(_), Err(ec)) => Err(vec![ec]),
-            (Err(errs), Ok(_)) => Err(errs),
-            (Err(mut errs), Err(ec)) => Err({
-                errs.push(ec);
-                errs
-            }),
-        }
-    }
-}
-
-impl<T, U, V, W, RT, ERR> MultiTry<RT, ERR> for Result<(T, U, V, W), Vec<ERR>> {
-    type Output = Result<(T, U, V, W, RT), Vec<ERR>>;
-
-    fn and_try(self, other: Result<RT, ERR>) -> Self::Output {
-        match (self, other) {
-            (Ok((a, b, c, d)), Ok(e)) => Ok((a, b, c, d, e)),
-            (Ok(_), Err(ec)) => Err(vec![ec]),
-            (Err(errs), Ok(_)) => Err(errs),
-            (Err(mut errs), Err(ec)) => Err({
-                errs.push(ec);
-                errs
-            }),
-        }
-    }
-}
+impl_multi_try!(A);
+impl_multi_try!(A, B);
+impl_multi_try!(A, B, C);
+impl_multi_try!(A, B, C, D);
+impl_multi_try!(A, B, C, D, E);
+impl_multi_try!(A, B, C, D, E, F);
+impl_multi_try!(A, B, C, D, E, F, G);
+impl_multi_try!(A, B, C, D, E, F, G, H);
+impl_multi_try!(A, B, C, D, E, F, G, H, I);
+impl_multi_try!(A, B, C, D, E, F, G, H, I, J);
+impl_multi_try!(A, B, C, D, E, F, G, H, I, J, K);
+impl_multi_try!(A, B, C, D, E, F, G, H, I, J, K, L);
+impl_multi_try!(A, B, C, D, E, F, G, H, I, J, K, L, M);
+impl_multi_try!(A, B, C, D, E, F, G, H, I, J, K, L, M, N);
+impl_multi_try!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O);
+impl_multi_try!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P);
+impl_multi_try!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q);
+impl_multi_try!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R);
+impl_multi_try!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S);
+impl_multi_try!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T);
+impl_multi_try!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U);
+impl_multi_try!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V);
+impl_multi_try!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W);
+impl_multi_try!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X);
+impl_multi_try!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y);
+impl_multi_try!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z);
