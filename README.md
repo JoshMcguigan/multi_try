@@ -38,6 +38,8 @@ fn validate(a: A) -> Result<ValidatedA, Vec<MyErr>> {
 }
 ```
 
+Check the `tests` directory for additional examples.
+
 #### Enabling nightly features
 
 Enabling the `nightly` feature for `multi_try` allows removing the call to `into_result` before using the `?` operator. 
