@@ -10,11 +10,35 @@
 //! See the documentation for the [`MultiTry` trait] for more information and an example.
 //!
 //! [`MultiTry` trait]: trait.MultiTry.html
+//!
+//! # Manual implementation
+//!
+//! To manually implement the [`MultiTry` trait], you need to enable the `manual` feature
+//! and then use the [`impl_multi_try`] macro somewhere, with the amount of results you need to compare.
+//!
+//! ```no_run
+//! use multi_try::impl_multi_try;
+//!
+//! // Impl multi_try for up to four elements
+//! impl_multi_try!(A, B, C, D);
+//!
+//! // Or for up to 25 elements
+//! impl_multi_try!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, X, Y, Z);
+//!
+//! // Or just two
+//! impl_multi_try!(A, B);
+//! 
+//! // Or really just any number of elements you need and with any names you want.
+//! impl_multi_try!(THIS, IS, OK);
+//! ```
 
+/// Implements [`MultiTry`] for the given number of arguments.
+///
+/// This macro should only be used once.
 #[macro_export]
-macro_rules! impl_multi {
+macro_rules! impl_multi_try {
     ($($typ:ident),+) => {
-        /// Exposes the `and_try` method for combining multiple `Result` types.
+        /// Exposes the `and_try` method for combining multiple [`Result`] types.
         ///
         /// This is an extension trait designed to add functionality to the `Result` type. That
         /// means that to use this trait's methods, you must have it in scope:
@@ -106,7 +130,9 @@ macro_rules! impl_multi {
     };
 }
 
-/// Allows you to create multiple implementations recursively, instead of manually.
+/// Should not be used manually
+/// 
+/// Implements [`MultiTry`] recursively for the number of arguments passed.
 #[macro_export]
 macro_rules! impl_multi_try_recursive {
     ($first:ident) => {
@@ -119,6 +145,9 @@ macro_rules! impl_multi_try_recursive {
     };
 }
 
+/// Should not be used manually
+/// 
+/// Implements [`MultiTry`] for a specific number of values.
 #[macro_export]
 macro_rules! impl_multi_try_for {
     ($($typ:ident),+) => {
@@ -142,4 +171,4 @@ macro_rules! impl_multi_try_for {
 }
 
 #[cfg(not(feature = "manual"))]
-impl_multi!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z);
+impl_multi_try!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z);
