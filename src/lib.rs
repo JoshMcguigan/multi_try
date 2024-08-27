@@ -120,29 +120,16 @@ macro_rules! impl_multi_try {
     };
 }
 
-impl_multi_try!(A);
-impl_multi_try!(A, B);
-impl_multi_try!(A, B, C);
-impl_multi_try!(A, B, C, D);
-impl_multi_try!(A, B, C, D, E);
-impl_multi_try!(A, B, C, D, E, F);
-impl_multi_try!(A, B, C, D, E, F, G);
-impl_multi_try!(A, B, C, D, E, F, G, H);
-impl_multi_try!(A, B, C, D, E, F, G, H, I);
-impl_multi_try!(A, B, C, D, E, F, G, H, I, J);
-impl_multi_try!(A, B, C, D, E, F, G, H, I, J, K);
-impl_multi_try!(A, B, C, D, E, F, G, H, I, J, K, L);
-impl_multi_try!(A, B, C, D, E, F, G, H, I, J, K, L, M);
-impl_multi_try!(A, B, C, D, E, F, G, H, I, J, K, L, M, N);
-impl_multi_try!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O);
-impl_multi_try!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P);
-impl_multi_try!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q);
-impl_multi_try!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R);
-impl_multi_try!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S);
-impl_multi_try!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T);
-impl_multi_try!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U);
-impl_multi_try!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V);
-impl_multi_try!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W);
-impl_multi_try!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X);
-impl_multi_try!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y);
-impl_multi_try!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z);
+/// Allows you to create multiple implementations recursively, instead of manually.
+macro_rules! impl_multi_try_multiple {
+    ($first:ident) => {
+        impl_multi_try!($first);
+    };
+
+    ($first:ident, $($rest:ident),+) => {
+        impl_multi_try!($first, $($rest),+);
+        impl_multi_try_multiple!($($rest),+);
+    };
+}
+
+impl_multi_try_multiple!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z);
