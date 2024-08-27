@@ -8,4 +8,8 @@ repository = "https://github.com/JoshMcguigan/multi_try"
 readme = "README.md"
 license = "MIT OR Apache-2.0"
 
+[features]
+default = []
+manual = []
+
 [dependencies]
