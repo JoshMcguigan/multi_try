@@ -16,7 +16,7 @@
 //! To manually implement the [`MultiTry` trait], you need to enable the `manual` feature
 //! and then use the [`impl_multi_try`] macro somewhere, with the amount of results you need to compare.
 //!
-//! ```no_run
+//! ```ignore
 //! use multi_try::impl_multi_try;
 //!
 //! // Impl multi_try for up to four elements
