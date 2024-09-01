@@ -40,11 +40,7 @@ mod tests {
         };
 
         let result = validate(a);
-        let expected = Err(vec![
-            MyErr::FailedB,
-            MyErr::FailedC,
-            MyErr::FailedD,
-        ]);
+        let expected = Err(vec![MyErr::FailedB, MyErr::FailedC, MyErr::FailedD]);
 
         assert_eq!(expected, result);
     }
@@ -58,9 +54,7 @@ mod tests {
         };
 
         let result = validate(a);
-        let expected = Err(vec![
-            MyErr::FailedC,
-        ]);
+        let expected = Err(vec![MyErr::FailedC]);
 
         assert_eq!(expected, result);
     }

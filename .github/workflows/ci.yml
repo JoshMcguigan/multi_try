@@ -13,4 +13,6 @@ jobs:
       run: cargo build
     - name: Test
       run: cargo test
+    - name: Format
+      run: cargo fmt --all -- --check
 

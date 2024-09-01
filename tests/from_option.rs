@@ -25,10 +25,11 @@ enum ValidationError {
 }
 
 fn validate(a: A) -> Result<ValidatedA, Vec<ValidationError>> {
-    let (b, c, d, e) = a.b.ok_or(ValidationError::MissingB)
-        .and_try(a.c.ok_or(ValidationError::MissingC))
-        .and_try(a.d.ok_or(ValidationError::MissingD))
-        .and_try(a.e.ok_or(ValidationError::MissingE))?;
+    let (b, c, d, e) =
+        a.b.ok_or(ValidationError::MissingB)
+            .and_try(a.c.ok_or(ValidationError::MissingC))
+            .and_try(a.d.ok_or(ValidationError::MissingD))
+            .and_try(a.e.ok_or(ValidationError::MissingE))?;
 
     Ok(ValidatedA { b, c, d, e })
 }
@@ -64,7 +65,6 @@ mod tests {
             c: Some(1),
             d: Some(1),
             e: Some(2),
-
         };
 
         let result = validate(a);
@@ -83,7 +83,12 @@ mod tests {
         };
 
         let result = validate(a);
-        let expected = Ok(ValidatedA { b: 1, c: 2, d: 3, e: 4 });
+        let expected = Ok(ValidatedA {
+            b: 1,
+            c: 2,
+            d: 3,
+            e: 4,
+        });
 
         assert_eq!(expected, result);
     }
