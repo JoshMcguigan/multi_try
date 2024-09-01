@@ -1,7 +1,6 @@
 # multi_try
 [![crates.io badge](https://img.shields.io/crates/v/multi_try.svg)](https://crates.io/crates/multi_try)
 [![Docs.rs](https://docs.rs/multi_try/badge.svg)](https://docs.rs/multi_try)
-[![Build Status](https://travis-ci.org/JoshMcguigan/multi_try.svg?branch=master)](https://travis-ci.org/JoshMcguigan/multi_try)
 
 This crate allows you to combine multiple `Result` types and return either a
 tuple containing all of their results, or a `Vec` of any errors which occurred.
