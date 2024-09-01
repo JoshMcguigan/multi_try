@@ -18,18 +18,18 @@ struct ValidatedEmail<'a> {
 
 #[derive(Debug, PartialEq)]
 enum EmailValidationErr {
-    InvalidEmailAddress,
-    InvalidRecipientEmailAddress,
-    InvalidSenderEmailAddress,
-    InvalidSubject,
-    InvalidBody,
+    EmailAddress,
+    RecipientEmailAddress,
+    SenderEmailAddress,
+    Subject,
+    Body,
 }
 
 fn validate_address(address: &str) -> Result<&str, EmailValidationErr> {
-    if address.contains("@") {
+    if address.contains('@') {
         Ok(address)
     } else {
-        Err(EmailValidationErr::InvalidEmailAddress)
+        Err(EmailValidationErr::EmailAddress)
     }
 }
 
@@ -37,7 +37,7 @@ fn validate_subject(subject: &str) -> Result<&str, EmailValidationErr> {
     if subject.len() > 5 {
         Ok(subject)
     } else {
-        Err(EmailValidationErr::InvalidSubject)
+        Err(EmailValidationErr::Subject)
     }
 }
 
@@ -45,16 +45,14 @@ fn validate_body(body: &str) -> Result<&str, EmailValidationErr> {
     if body.len() > 10 {
         Ok(body)
     } else {
-        Err(EmailValidationErr::InvalidBody)
+        Err(EmailValidationErr::Body)
     }
 }
 
 fn validate_email(email: Email) -> Result<ValidatedEmail, Vec<EmailValidationErr>> {
     let (to, from, subject, body) = validate_address(email.to)
-        .map_err(|_| EmailValidationErr::InvalidRecipientEmailAddress)
-        .and_try(
-            validate_address(email.from).map_err(|_| EmailValidationErr::InvalidSenderEmailAddress),
-        )
+        .map_err(|_| EmailValidationErr::RecipientEmailAddress)
+        .and_try(validate_address(email.from).map_err(|_| EmailValidationErr::SenderEmailAddress))
         .and_try(validate_subject(email.subject))
         .and_try(validate_body(email.body))?;
 
@@ -81,10 +79,10 @@ mod tests {
 
         let result = validate_email(a);
         let expected = Err(vec![
-            EmailValidationErr::InvalidRecipientEmailAddress,
-            EmailValidationErr::InvalidSenderEmailAddress,
-            EmailValidationErr::InvalidSubject,
-            EmailValidationErr::InvalidBody,
+            EmailValidationErr::RecipientEmailAddress,
+            EmailValidationErr::SenderEmailAddress,
+            EmailValidationErr::Subject,
+            EmailValidationErr::Body,
         ]);
 
         assert_eq!(expected, result);
@@ -100,7 +98,7 @@ mod tests {
         };
 
         let result = validate_email(a);
-        let expected = Err(vec![EmailValidationErr::InvalidBody]);
+        let expected = Err(vec![EmailValidationErr::Body]);
 
         assert_eq!(expected, result);
     }

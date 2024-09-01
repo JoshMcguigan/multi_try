@@ -13,6 +13,8 @@ jobs:
       run: cargo build
     - name: Test
       run: cargo test
+    - name: Clippy
+      run: cargo clippy --all-targets --all-features -- -D warnings
     - name: Format
       run: cargo fmt --all -- --check
 
